@@ -1,10 +1,8 @@
 var http = require("http");
 var url = require("url");
 var queryString = require("querystring");
-
 // 파일을 읽을 수 있는 Api
 var fs = require("fs");
-
 // 파일의 MagincNumber 를 알 수 있는 APi
 // 설치 방법 : npm install -g mime
 var mime = require("mime")
@@ -12,31 +10,32 @@ var mime = require("mime")
 
 // 주소(Rest Api) 요청의 형태
 // http://localhost:8090/post?filePaht=/dir1/xxx.png
-
 var server = http.createServer(function(req, res){
 
-  var sampleUrl = url.parse(req.url);
   // 1. 주소에서 명령어 = 서버 자원의 이름 또는 ID(URI) 를 꺼낸다
+  var sampleUrl = url.parse(req.url);
+  // 1-1. Path 분석
+  // ? 나오기 전까지 모두 다 읽음
+  // pathname : /post/~~~~
   var path = sampleUrl.pathname;
+  // 1-2. / 단위로 Path 를 배열로 생성
+  // cmds[0] = []
+  // cmds[1] = [post]
   var cmds = path.split('/');
-  console.log("path : " + path);
-  console.log("cmds[1] : " + cmds[1]);
+
   // 2. Method 를 꺼낸다.
   // req.method == 'get'
   if(cmds[1] == 'getfile'){
-    //console.log('sampleUrl : ' + sampleUrl);
-    //console.log('path : ' + path);
-    //console.log("req.method  : " + req.method );
     if(req.method == 'POST'){
       // ..... body 에 넘어온 filepath 를 꺼내온다.
     }else if(req.method == 'GET'){
       var query = queryString.parse(sampleUrl.query);
-      console.log("query.filepath : "+ query.filepath);
+      // query {
+      //  filepath : '~~~.mp4'
+      //
       if(query.filepath){
         var filePath = query.filepath;
-        console.log("filepath : " + filePath);
         var mtype = mime.getType(filePath); // 파일의 mime Type 을 알려준다.
-        console.log("mtype : " + mtype);
 
         if(mtype == "video/mp4"){
           var count = 0;
@@ -74,11 +73,12 @@ var server = http.createServer(function(req, res){
             }
           });
         }
+      }else{
+        // 파일이 없는 경우
       }
     }
   }else if(cmds[1] == 'html'){
     var filePath = path.substring(1);
-    console.log("filePath : " + filePath);
     fs.readFile(filePath, function(error, data){
       if(error){
         res.writeHead(500, {'Content-type': 'text/html'});
